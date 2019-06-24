@@ -1,0 +1,23 @@
+call d:\bin\env.bat
+
+pscp -batch -pw "N6sU%ty" "\\xavier.xula.local\Dfs\Departments\Fiscal\Fiscal Secure\ach_transfer_jpmc\achf.test-dec17-kkirk.txt" xavpgp@xavpsweb01.xula.edu:/data00/xavpgp/jpmc/out
+pscp -pw "N6sU%ty" "\\xavier.xula.local\Dfs\Departments\Fiscal\Fiscal Secure\ach_transfer_jpmc\achf.test-dec17-kkirk.txt" xavpgp@xavpsweb01.xula.edu:/data00/xavpgp/jpmc/out
+
+
+Ike12@55
+
+xavpsweb01:/data00/xavpgpjpmc/.ssh $ tar cvf keys-backup.tar *
+id_rsa
+id_rsa.pub
+known_hosts
+xavpsweb01:/data00/xavpgpjpmc/.ssh $ ssh-keygen -t rsa
+Generating public/private rsa key pair.
+Enter file in which to save the key (/data00/xavpgpjpmc/.ssh/id_rsa):
+/data00/xavpgpjpmc/.ssh/id_rsa already exists.
+Overwrite (y/n)? y
+Enter passphrase (empty for no passphrase):
+Enter same passphrase again:
+Your identification has been saved in /data00/xavpgpjpmc/.ssh/id_rsa.
+Your public key has been saved in /data00/xavpgpjpmc/.ssh/id_rsa.pub.
+The key fingerprint is:
+a0:30:6b:00:00:dd:68:54:2b:41:bd:05:d0:42:a5:fa xavpgpjpmc@xavpsweb01

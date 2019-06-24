@@ -1,0 +1,48 @@
+@ECHO OFF
+REM
+REM Date: July 11, 2011
+REM Author: Ken Kirk
+REM
+REM AUDIT TRAIL: July 11, 2011
+REM  1) created to transfer files created for New or modified data files from UNIX to Windows.
+REM  2) This process will handle both test and production file transfers
+REM 
+REM 
+
+REM TEST
+pscp -load "DATALOADT" xuvaban05d:/app_exe0/ldap/actdir/*.txt S:\DepartmentShares\itc\actdir
+if exist S:\DepartmentShares\itc\actdir\stage\*.txt goto ACTDIR4TEST
+goto ACTDIR4PROD
+
+:ACTDIR4TEST
+echo cd /app_exe0/ldap/actdir > S:\DepartmentShares\itc\actdir\temp\filelist-test.%achfilelike2%.scr
+  FOR /f "tokens=*" %%G IN ('dir /b S:\DepartmentShares\itc\actdir\stage') DO (
+   echo del %%G >>  S:\DepartmentShares\itc\actdir\temp\filelist-test.%achfilelike2%.scr
+  )
+echo quit >>  S:\DepartmentShares\itc\actdir\temp\filelist-test.%achfilelike2%.scr
+REM psftp -load "DATALOADT" -b S:\DepartmentShares\itc\actdir\temp\filelist-test.%achfilelike2%.scr
+
+move S:\DepartmentShares\itc\actdir\stage\*.txt S:\DepartmentShares\itc\actdir\test\
+
+
+:ACTDIR4PROD
+
+pscp -load "DATALOAD" xuvaban02:/app_exe0/ldap/actdir/*.txt S:\DepartmentShares\itc\actdir\stage
+if exist S:\DepartmentShares\itc\actdir\stage\*.txt goto ACTDIR4XU
+goto FINAL
+
+:ACTDIR4XU
+echo cd /app_exe0/ldap/actdir > S:\DepartmentShares\itc\actdir\temp\filelist-production.%achfilelike2%.scr
+  FOR /f "tokens=*" %%G IN ('dir /b S:\DepartmentShares\itc\actdir\stage') DO (
+   echo del %%G >>  S:\DepartmentShares\itc\actdir\temp\filelist-production.%achfilelike2%.scr
+  )
+echo quit >>  S:\DepartmentShares\itc\actdir\temp\filelist-production.%achfilelike2%.scr
+psftp -load "DATALOAD" -b S:\DepartmentShares\itc\actdir\temp\filelist-production.%achfilelike2%.scr
+
+move S:\DepartmentShares\itc\actdir\stage\*.txt S:\DepartmentShares\itc\actdir\production\
+
+:FINAL
+echo FINISHED ACTIVE DIRECTORY USER UPDATE PROCESS!
+exit
+
+

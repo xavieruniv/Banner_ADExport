@@ -1,0 +1,33 @@
+@ECHO OFF
+REM
+REM Filename: ld_idmfile.bat
+REM Author: Ken Kirk
+REM Create Date: Feb 24, 2017
+REM Revision Date: 
+REM
+
+if exist D:\sched_jobs\idm\ad_logfile_load.txt goto AD_REMOVE
+if exist D:\sched_jobs\idm\xm_logfile_load.txt goto XM_REMOVE
+
+echo "No new logfile activity!"
+goto FINAL
+
+:AD_REMOVE
+del /q D:\sched_jobs\idm\ad_logfile_load.txt
+goto LOAD
+
+:XM_REMOVE
+del /q D:\sched_jobs\idm\xm_logfile_load.txt
+goto LOAD
+
+:LOAD
+REM Upload file to the Banner DB server
+set SRCE=D:\sched_jobs\idm\data\idmfile_ext.txt
+set DEST=/app_exe0/dataload/itc/external_tables/idmfile_ext.txt
+
+pscp -load "xuvaban02_DATALOAD"  -p %SRCE%  xuvaban02:%DEST%
+pscp -load "xuvaban05d_DATALOAD" -p %SRCE%  xuvaban05d:%DEST%
+
+:FINAL
+
+echo "Return to calling program"

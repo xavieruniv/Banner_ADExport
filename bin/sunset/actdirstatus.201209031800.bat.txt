@@ -1,0 +1,75 @@
+@ECHO OFF
+REM
+REM Date: September 3, 2012
+REM Author: Ken Kirk
+REM
+REM AUDIT TRAIL: September 3, 2012
+REM  1) Extract Xavier domain active directory user status information
+REM  2) Load Xavier domain active directory data into the table XUADSTG table
+REM 
+
+
+set DATAFILE0=E:\idm\data\actdir.%achfilelike2%.txt
+set DATAFILE1=E:\idm\data\actdir.%achfilelike2%.n.csv
+set DATAFILE2=E:\idm\data\actdir.%achfilelike2%.c.csv
+set CNTRLFILE=E:\idm\data\actdir.%achfilelike2%
+set SQLDIR=E:\idm\sql
+set SPOOLFILE=E:\idm\activity_log\afterSqlLdr.%achfilelike2%.log
+
+set OWNER="XUIDMGR"
+set PASSTHRU1="XU2360"
+set DEST_DB="XU"
+
+
+:ExtractAD
+csvde -f %DATAFILE1% -s xupwcdc1 -d "DC=xavier,DC=xula,DC=local" -r "(&(objectCategory=person)(objectClass=User)(whenCreated>=%actdirstart%)(whenCreated<=%actdirend%))" -l "samAccountName,whenCreated,whenChanged,userAccountControl,accountExpires"
+csvde -f %DATAFILE2% -s xupwcdc1 -d "DC=xavier,DC=xula,DC=local" -r "(&(objectCategory=person)(objectClass=User)(WhenChanged>=%actdirstart%)(WhenChanged<=%actdirend%))" -l "samAccountName,whenCreated,whenChanged,userAccountControl,accountExpires"
+echo %actdirend% > e:\idm\tstamp.txt
+
+if exist %DATAFILE1% (
+   set KG1="Y"
+  ) else (
+   set KG1="N"
+  )
+
+if exist %DATAFILE2%  (
+   set KG2="Y"
+  ) else (
+   set KG2="N"
+  )
+
+if %KG1% == "Y" goto fileCombine
+if %KG2% == "Y" goto fileCombine
+
+goto FINAL
+
+:fileCombine
+
+if %KG1% == "Y" type %DATAFILE1% >> %DATAFILE0%
+if %KG2% == "Y" type %DATAFILE2% >> %DATAFILE0%
+
+type E:\idm\template\xuadstg.ctl > %CNTRLFILE%.ctl
+
+REM Remove header records from the %DATAFILE0% file before loading into database to prevent known errors
+for /F "tokens=*" %%i in (%DATAFILE0%) do (
+ 
+  if "%%i" == "DN,whenCreated,whenChanged,userAccountControl,accountExpires,sAMAccountName" (
+   set NODATA=""
+  ) else (
+  echo %%i >> %CNTRLFILE%.ctl 
+  )
+)
+
+echo Y | del %DATAFILE0% %DATAFILE1% %DATAFILE2%
+
+:LoadDB
+
+sqlldr %OWNER%/%PASSTHRU1%@%DEST_DB% control=%CNTRLFILE%.ctl log=%CNTRLFILE%.log bad=%CNTRLFILE%.bad
+
+sqlplus %OWNER%/%PASSTHRU1%@%DEST_DB% @%SQLDIR%\afterSqlLdr.sql %SPOOLFILE%
+
+:FINAL
+echo FINISHED ACTIVE DIRECTORY USER STATUS LOAD PROCESS!
+exit
+
+

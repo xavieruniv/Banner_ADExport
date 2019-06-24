@@ -1,0 +1,19 @@
+@ECHO OFF
+REM
+REM Date: February 24, 2017
+REM Author: Ken Kirk
+REM
+
+set file2Check=%1
+
+call :CheckEmpty "%file2Check%"
+goto :FINAL
+
+:CheckEmpty
+if %~z1 == 0 del /q "%file2Check%" & echo "%file2Check% was deleted" & goto FINAL
+
+echo "%file2Check% is not empty"
+:FINAL
+
+echo "Return to calling program"
+

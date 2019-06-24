@@ -1,0 +1,22 @@
+@ECHO OFF
+REM This script is used to maintain drive space by deleting old backup files from our production envirenment server 
+REM and the Co-Location server. It will first delete the mapped drive, then remapp the drive, 
+REM then finaly delete files more than three days old, from their respective backup directories.
+REM Version: 1.00
+REM Date: May 24, 2007
+REM Author: Ben Wandera
+REM
+REM Delete drive
+REM net use Q: /delete
+REM
+REM net use Q: \\66.45.109.14\fromprod s1pxxx /USER:10.45.109.14\appteam /PERSISTENT:YES
+REM
+forfiles /p D:\sched_jobs\reslife\log\ /s /m *.* /d -5 /c "cmd /c del /q @path"
+REM forfiles /p Q:\ /s /m *.* /d -4 /c "cmd /c del /q @path"
+REM
+REM forfiles /p D:\MSQLData\MSSQL\BACKUP2\MicroTelCall /s /m *.* /d -2 /c "cmd /c del /q @path"
+REM forfiles /p D:\MSQLData\MSSQL\BACKUP2\re7 /s /m *.* /d -3 /c "cmd /c del /q @path"
+REM
+REM To schedule this batch file to run daily, use the following command
+REM at 8:00 /every:M,T,W,Th,F,S,Su c:\deletefiles.bat ^>c:\deletefiles_lastrun.log
+REM

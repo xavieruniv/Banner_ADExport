@@ -1,0 +1,16 @@
+echo off
+REM Brio OnDemand Server | 10.70.10.176 (xuvwapp06)
+
+if "%1" == "stop" goto close_Service
+if "%1" == "start" goto open_Service
+exit
+
+:close_service
+net stop "Brio OnDemand Server"
+goto final
+
+:open_service
+net start "Brio OnDemand Server"
+
+:Final
+echo "%1 all services"

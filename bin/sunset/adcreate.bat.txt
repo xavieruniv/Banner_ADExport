@@ -1,0 +1,33 @@
+@ECHO OFF
+REM
+REM Filename: adcreate.bat
+REM Author: Ken Kirk
+REM Create Date: Feb 18, 2017
+REM Revision Date: 
+REM
+
+REM
+echo "Execute Oracle SQLPlus. Running ad_check4_create.sql now..."
+sqlplus -s %UIPSWD% @D:\sched_jobs\idm\sql\ad_check4_create.sql >D:\sched_jobs\idm\activity_log\ad_extract_create.%RRYYMMDD_HH24.MM%.log
+REM sqlplus -s %UIPSWD2% @D:\sched_jobs\idm\sql\ad_check4_create.sql >D:\sched_jobs\idm\activity_log\ad_extract_create.%RRYYMMDD_HH24.MM%.log
+REM
+
+if exist D:\sched_jobs\idm\ad_process_create.txt goto CREATEIT
+
+echo "No file(s) found!"
+
+goto FINAL
+
+:CREATEIT
+REM
+echo "Execute Oracle SQLPlus. Running ad_extract_create.sql now..."
+sqlplus -s %UIPSWD% @D:\sched_jobs\idm\sql\ad_extract_create.sql >D:\sched_jobs\idm\activity_log\ad_extract_create.%RRYYMMDD_HH24.MM%.log
+REM sqlplus -s %UIPSWD2% @D:\sched_jobs\idm\sql\ad_extract_create.sql >D:\sched_jobs\idm\activity_log\ad_extract_create.%RRYYMMDD_HH24.MM%.log
+REM
+
+host echo "Transfers AD Log List!"> D:\sched_jobs\idm\ad_logfile_load.txt
+
+:FINAL
+
+EXIT
+

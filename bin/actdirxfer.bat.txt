@@ -1,0 +1,58 @@
+@ECHO OFF
+REM
+REM Date: July 11, 2011
+REM Author: Ken Kirk
+REM
+REM AUDIT TRAIL: July 11, 2011
+REM  1) created to transfer files created for New or modified data files from UNIX to Windows.
+REM  2) This process will handle both test and production file transfers
+REM 
+REM 
+
+set SRCE=/app_exe0/ldap/actdir/xfer_stage
+set DEST=\\xavier.xula.local\Dfs\ITC-Library\ITC-Library\ITC-Applications\DepartmentShares\itc\actdir
+
+REM TEST
+pscp -load "DATALOADT" xuvaban05d:%SRCE%/*.csv %DEST%\stage
+if exist %DEST%\stage\*.csv goto ACTDIR4TEST
+goto ACTDIR4PROD
+
+:ACTDIR4TEST
+echo cd %SRCE% > %DEST%\temp\filelist-test.%achfilelike2%.scr
+  FOR /f "tokens=*" %%G IN ('dir /b %DEST%\stage') DO (
+   echo del %%G >>  %DEST%\temp\filelist-test.%achfilelike2%.scr
+  )
+
+  FOR /f "tokens=*" %%G IN ('dir /b %DEST%\stage') DO (
+   more %DEST%\stage\%%G > %DEST%\test\%%G
+   del %DEST%\stage\%%G
+  )
+
+echo quit >>  %DEST%\temp\filelist-test.%achfilelike2%.scr
+REM psftp -load "DATALOADT" -b %DEST%\temp\filelist-test.%achfilelike2%.scr
+
+:ACTDIR4PROD
+
+pscp -load "DATALOAD" xuvaban02:%SRCE%/*.csv %DEST%\stage
+if exist %DEST%\stage\*.csv goto ACTDIR4XU
+goto FINAL
+
+:ACTDIR4XU
+echo cd %SRCE% > %DEST%\temp\filelist-production.%achfilelike2%.scr
+  FOR /f "tokens=*" %%G IN ('dir /b %DEST%\stage') DO (
+   echo del %%G >>  %DEST%\temp\filelist-production.%achfilelike2%.scr
+  )
+
+  FOR /f "tokens=*" %%G IN ('dir /b %DEST%\stage') DO (
+   more %DEST%\stage\%%G > %DEST%\production\%%G
+   del %DEST%\stage\%%G
+  )
+
+echo quit >>  %DEST%\temp\filelist-production.%achfilelike2%.scr
+psftp -load "DATALOAD" -b %DEST%\temp\filelist-production.%achfilelike2%.scr
+
+:FINAL
+echo FINISHED ACTIVE DIRECTORY USER UPDATE PROCESS!
+exit
+
+

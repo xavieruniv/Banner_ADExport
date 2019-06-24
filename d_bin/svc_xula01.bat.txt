@@ -1,0 +1,296 @@
+@ECHO OFF
+REM
+REM Create Date: June 12, 2014
+REM Last Date  : June 12, 2014
+REM Author: Ken Kirk
+REM
+REM AUDIT TRAIL: June 12, 2014
+REM 
+REM RRYYMMDDHH24MMSS.OZ = actdirend       = 20140612095300.OZ
+REM RRYYMMDD_HH24.MM    = backupname      = 20140612_09.53
+REM RRYYMMDDHH24MM      = achfilelike2    = 201406120953
+REM RRYYMMDDHH24MM      = OUTPUT_DIR      = 201406120953
+REM RRYYMMDD            = lockboxFolder   = 20140612
+REM RRYYMMDD            = achfilelike     = 20140612
+REM RRYYMM              = lockboxFileLike = 201406
+REM 
+call d:\bin\env.bat
+
+REM
+@ECHO ON
+
+if "%1" == "BNOB_ENROLLMENT" goto BNOB_ENROLLMENT
+if "%1" == "AciWWRemit" goto AciWWRemit
+if "%1" == "XMCREATE" goto XMCREATE_CHECK
+if "%1" == "XUADDMP" goto XUADDMP_EXT
+if "%1" == "ADCRSYNC" goto ADCRSYNC_CHECK
+if "%1" == "REGROUP" goto REGROUP_DATALOAD
+if "%1" == "CONNECT" goto CONNECT_DATALOAD
+if "%1" == "BBLS_SIS" goto BBSIS
+if "%1" == "ADIRONDACK" goto RESLIFE
+if "%1" == "ACTFile" goto ACTScores
+if "%1" == "FUPLOAD" goto FUPLOAD
+if "%1" == "SATFile" goto SATScores
+if "%1" == "COMMAPP" goto COMMAPP
+if "%1" == "COMMAPPSDS" goto COMMAPPSDS
+if "%1" == "DISBD" goto DISBD
+if "%1" == "LOAND" goto LOAND
+if "%1" == "RotateEVIARCHRegis" goto ROTATE_EVIARCH_REGIS
+if "%1" == "ROTATE_EVIMAIL" goto ROTATE_EVI_LOG
+if "%1" == "ACHXFER" goto ACH_xfer
+if "%1" == "ACIWWTH" goto ACIWWTH_xfer
+if "%1" == "SUMPGRM" goto SUMPGRM_xfer
+if "%1" == "TIAAXFER" goto TIAA_XFER
+if "%1" == "VOYAXFER" goto VOYA_XFER
+if "%1" == "ACS" goto ACS_XFER1
+if "%1" == "ACHFDL" goto DOWNLOAD_ACHF
+if "%1" == "ACHPDL" goto DOWNLOAD_ACHP
+if "%1" == "LOCKBOX" goto LOCKBOX
+if "%1" == "SAP" goto SAP
+if "%1" == "LDOL" goto LDOL
+if "%1" == "SATPGPFile" goto SATEnv
+if "%1" == "WEBCAPEFile" goto WEBCAPEScores
+if "%1" == "ACCUPFile" goto ACCUPScores
+if "%1" == "UACCTW" goto ACTDIR
+if "%1" == "SGHEUPG" goto SGHEUPG
+if "%1" == "XUBOOKS" goto BNCollege
+if "%1" == "XPHOTOS" goto xFoto
+if "%1" == "PERSONA" goto DOORS
+if "%1" == "CLRHOUS" goto SFRNSLC
+if "%1" == "APPLICANT" goto APPLICANT
+
+goto FINAL
+
+:BNOB_ENROLLMENT
+call D:\sched_jobs\bnob_enrollment\bin\bnob_enrollment.bat
+goto FINAL
+
+:AciWWRemit
+call D:\sched_jobs\aciww\bin\getAciwwRemit.bat
+REM start /min D:\sched_jobs\aciww\bin\getAciwwRemit.bat
+goto FINAL
+
+:XMCREATE_CHECK
+call D:\sched_jobs\idm\bin\xmcreate.bat
+goto FINAL
+
+
+:XUADDMP_EXT
+call D:\sched_jobs\idm\bin\xuaddmp.bat
+goto FINAL
+
+:ADCRSYNC_CHECK
+call D:\sched_jobs\idm\bin\adcrsync.bat
+goto FINAL
+
+:REGROUP_DATALOAD
+call D:\sched_jobs\regroup\bin\xfer2regroup.bat
+goto FINAL
+
+:CONNECT_DATALOAD
+call D:\sched_jobs\admissions\bin\xfer2connect.bat
+goto FINAL
+
+
+:BBSIS
+
+call D:\sched_jobs\bbls\bin\bbls_sis.bat "%2"
+goto FINAL
+
+:RESLIFE
+
+call D:\sched_jobs\reslife\bin\xfer2adirondack.bat
+goto FINAL
+
+:ACTScores
+set SRCE_LOC=\\xavier.xula.local\Dfs\ITC-Library\Reports\Admissions
+set SRCE_FILE=%SRCE_LOC%\act*-1618.txt
+set DEST_LOC=/app_exe0/act/in
+set POST_XFER_LOC_TXT=%SRCE_LOC%\act_complete
+
+if exist %SRCE_FILE% goto ACTxfer
+
+echo "No file(s) found!"
+
+goto FINAL
+
+:ACTxfer
+call D:\sched_jobs\admissions\bin\actxfer_putty.bat
+REM start /min call D:\sched_jobs\admissions\bin\actxfer_putty.bat
+
+goto FINAL
+
+
+:FUPLOAD
+set SRCE_FILE="\\xavier.xula.local\Dfs\Departments\Fiscal\FUPLOAD\*.txt"
+set DEST_LOC=/app_exe0/dataload/fiscal/fupl
+set POST_XFER_LOC=\\xavier.xula.local\Dfs\Departments\Fiscal\FUPLOAD\transferred\
+
+if exist "%SRCE_FILE%" goto FpLD
+
+echo "No file(s) found!"
+goto FINAL
+
+:FpLD
+call D:\sched_jobs\fiscal\bin\fupload_putty.bat
+REM start /min D:\sched_jobs\fiscal\bin\fupload_putty.bat
+
+goto FINAL
+
+:SATScores
+set SRCE_LOC=\\xavier.xula.local\Dfs\ITC-Library\Reports\Admissions
+set SRCE_FILE=%SRCE_LOC%\sat*.txt
+set FILE_XFER_STATUS=%SRCE_LOC%\satxfer.dat
+set DEST_LOC=/app_exe0/sat/in
+set POST_XFER_LOC_TXT=%SRCE_LOC%\sat15_complete
+
+if exist %SRCE_FILE% goto SATxfer
+
+echo "No file(s) found!"
+
+goto FINAL
+
+:SATxfer
+call D:\sched_jobs\admissions\bin\satxfer_putty.bat
+
+goto FINAL
+
+:COMMAPP
+
+REM Putty pscp batch program call below
+call D:\sched_jobs\admissions\bin\commapp41.bat
+goto FINAL
+
+:COMMAPPSDS
+
+call D:\sched_jobs\admissions\bin\getSDSComapp.bat
+
+goto FINAL
+
+:DISBD
+
+call D:\sched_jobs\finaid\bin\dl_loan_reconcile.bat DISBD
+
+goto FINAL
+
+:LOAND
+
+call D:\sched_jobs\finaid\bin\dl_loan_reconcile.bat LOAND
+
+goto FINAL
+
+:LOCKBOX
+
+call D:\sched_jobs\jpmc\bin\lockbox.bat
+REM start /min D:\sched_jobs\jpmc\bin\lockbox.bat
+
+goto FINAL
+
+:BNCollege
+
+call D:\sched_jobs\arbnob_xfer\xfer2bnob.bat
+REM start /min D:\sched_jobs\arbnob_xfer\xfer2bnob.bat
+goto FINAL
+
+:ROTATE_EVIARCH_REGIS
+set SRCE_LOC=\\xavier.xula.local\Dfs\Departments\"Registrar Office"\eviFFArchiver\%Year%
+
+if exist %SRCE_LOC%\*.pdf call D:\sched_jobs\general\bin\rotate_eviarch_regis.bat
+goto FINAL
+
+:SUMPGRM_xfer
+set SRCE_LOC=\\xavier.xula.local\Dfs\ITC-Library\Reports\Admissions
+set SRCE_FILE_LOC=%SRCE_LOC%\sumpgrm_ext.txt
+set DEST_FILE_LOC=%SRCE_LOC%\sumpgrm\sumpgrm_ext.%RRYYMMDDHH24MM%.txt
+set DEST_LOC_AIX=/app_exe0/dataload/admissions/external_tables
+
+if exist %SRCE_FILE_LOC% call D:\sched_jobs\admissions\bin\sumpgrm_push.bat
+goto FINAL
+
+:ACIWWTH_xfer
+set SRCE_LOC=\\xavier.xula.local\Dfs\ITC-Library\Reports\dataload
+set SRCE_FILE_LOC=%SRCE_LOC%\TransactionHistory.csv
+set DEST_FILE_LOC1=%SRCE_LOC%\aciwwth_ext.txt
+set DEST_FILE_LOC2=%SRCE_LOC%\aciwwth_ext.%RRYYMMDDHH24MM%.txt
+set DEST_LOC_AIX=/app_exe0/dataload/fiscal/external_tables
+
+if exist %DEST_FILE_LOC1% del /q %DEST_FILE_LOC1%
+if exist %SRCE_FILE_LOC% call D:\sched_jobs\aciww\bin\aciwwth_push.bat
+goto FINAL
+
+:ACCUPScores
+set SRCE_LOC=\\xavier.xula.local\Dfs\ITC-Library\Reports\Admissions
+set SRCE_FILE=%SRCE_LOC%\accuplacer.txt
+set DEST_LOC=/app_exe0/dataload/admissions/external_tables
+set POST_XFER_LOC_TXT=%SRCE_LOC%\accuplacer_complete
+
+if exist %SRCE_FILE% goto ACCUPxfer
+
+echo "No file(s) found!"
+
+goto FINAL
+
+:ACCUPxfer
+call D:\sched_jobs\admissions\bin\accuplacer_putty.bat
+REM start /min call D:\sched_jobs\admissions\bin\accuplacer_putty.bat
+goto FINAL
+
+:ROTATE_EVI_LOG
+D:\sched_jobs\evisions\bin\rotateMailLog.bat
+goto FINAL
+
+:DOWNLOAD_ACHF
+call D:\sched_jobs\achXfer\bin\achXfer.bat fapdird
+goto FINAL
+
+:DOWNLOAD_ACHP
+call D:\sched_jobs\achXfer\bin\achXfer.bat phpdird
+goto FINAL
+
+:TIAA_XFER
+call D:\sched_jobs\retirement\bin\benxfer.bat TIAA
+goto FINAL
+
+:VOYA_XFER
+call D:\sched_jobs\retirement\bin\benxfer.bat VOYA
+goto FINAL
+
+:ACH_xfer
+set SRCE_LOC=\\xavier.xula.local\Dfs\Departments\Fiscal\Fiscal Secure\ach_transfer_jpmc
+set DEST_LOC=/data00/xavpgpjpmc/jpmc/out
+
+if exist "%SRCE_LOC%\achf*.txt" goto ach_refund
+if exist "%SRCE_LOC%\achp*.txt" goto ach_payroll
+goto FINAL
+
+:ach_refund
+set SRCE_FILE="%SRCE_LOC%\achf*.txt"
+set XFER_COMPLETE_LOC=\\xavier.xula.local\Dfs\Departments\Fiscal\Fiscal Secure\ach_refunds
+goto ach_sftp
+
+:ach_payroll
+set SRCE_FILE="%SRCE_LOC%\achp*.txt"
+set XFER_COMPLETE_LOC=\\xavier.xula.local\Dfs\Departments\Fiscal\Fiscal Secure\ach_payroll
+goto ach_sftp
+
+:ach_sftp
+echo Call SFTP script here!
+echo call D:\sched_jobs\jpmc\bin\achXfer4Encrypt_putty.bat
+call D:\sched_jobs\jpmc\bin\achXfer4Encrypt_putty.bat
+goto FINAL
+
+:SFRNSLC
+call D:\sched_jobs\registrar\bin\get_sfrnslc_putty.bat
+REM start /min D:\sched_jobs\registrar\bin\get_sfrnslc_putty.bat
+goto FINAL
+
+:APPLICANT
+call D:\sched_jobs\reslife\bin\xfer2applicant.bat
+goto FINAL
+
+
+:FINAL
+@ECHO ON
+exit
+
+

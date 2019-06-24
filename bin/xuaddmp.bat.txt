@@ -1,0 +1,48 @@
+@ECHO OFF
+REM
+REM Filename: xuaddmp.bat
+REM Date: February 19, 2017
+REM Author: Ken Kirk
+REM
+REM AUDIT TRAIL: February 19, 2017
+REM 
+REM 1) Replace Oracle SQL*Loader with Oracle External Tables
+REM 2) Other useful information for future development:
+REM csvde -f %DATAFILE1% -s xavier.xula.local -d "DC=xavier,DC=xula,DC=local" -r "(&(objectCategory=person)(objectClass=User)(samAccountName=*))" -l "Objectguid, Enabled, Samaccountname, Employeeid, Userprincipalname, DisplayName, Name, Givenname, SN, initials, Description, EmployeeType, Department, Title, ProfilePath, mail,whenCreated,whenChanged,userAccountControl,DN,ScriptPath"
+REM echo %actdirend% > D:\sched_jobs\idm\tstamp.txt
+REM csvde -f %DATAFILE1% -s xavier.xula.local -d "DC=xavier,DC=xula,DC=local" -r "(&(objectCategory=person)(objectClass=User)(whenCreated>=%actdirstart%)(whenCreated<=29890701055800.OZ))" -l "samAccountName,whenCreated,whenChanged,userAccountControl,accountExpires"
+REM
+REM FYI Column Extracts
+REM -- Current
+REM Objectguid, Enabled, Samaccountname, Employeeid, Userprincipalname, DisplayName, Name, Givenname, SN, initials, Description, EmployeeType, Department, Title, ProfilePath, mail,whenCreated,whenChanged,userAccountControl,DN,ScriptPath
+REM -- New
+REM Objectguid, Enabled, Samaccountname, Employeeid, EmployeeNumber, Userprincipalname, DisplayName, Name, Givenname, SN, initials, Description, EmployeeType, Department, Title, Manager, ProfilePath, mail,whenCreated,whenChanged,userAccountControl,DN,ScriptPath
+
+set DATAFILE0=D:\sched_jobs\idm\data\xuaddmp_ext.txt
+set DATAFILE1=D:\sched_jobs\idm\data\xuaddmp_ext.%RRYYMMDDHH24MM%.txt
+echo Y | del %DATAFILE0%
+
+:ExtractAD
+csvde -f %DATAFILE1% -r objectClass=user -l "Objectguid, Enabled, Samaccountname, Employeeid, Userprincipalname, DisplayName, Name, Givenname, SN, initials, Description, EmployeeType, Department, Title, ProfilePath, mail,whenCreated,whenChanged,userAccountControl,DN,ScriptPath"
+
+REM Remove header records from the %DATAFILE0% file before loading into database to prevent known errors
+for /F "tokens=*" %%i in (%DATAFILE1%) do (
+ 
+  if "%%i" == "DN,whenCreated,whenChanged,name,objectGUID,userAccountControl,sAMAccountName,displayName,description,givenName,scriptPath,profilePath,userPrincipalName,sn,initials,department,mail,title,employeeType,employeeID" (
+   set NODATA=""
+  ) else (
+  echo %%i >> %DATAFILE0% 
+  )
+)
+
+
+REM Upload file to the Banner DB server
+set DEST=/app_exe0/dataload/itc/external_tables
+
+pscp -load "xuvaban02_DATALOAD"  -p %DATAFILE0%  xuvaban02:%DEST%/xuaddmp_ext.txt
+pscp -load "xuvaban05d_DATALOAD" -p %DATAFILE0%  xuvaban05d:%DEST%/xuaddmp_ext.txt
+
+:FINAL
+echo FINISHED ACTIVE DIRECTORY USER STATUS FILE TRANSFER PROCESS!
+rem exit
+

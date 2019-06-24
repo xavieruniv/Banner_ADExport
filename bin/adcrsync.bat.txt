@@ -1,0 +1,51 @@
+@ECHO OFF
+REM
+REM Filename: adcrsync.bat
+REM Formerly: adcreate.bat
+REM Author: Ken Kirk
+REM Create Date: Mar 08, 2017
+REM Revision Date: 
+REM
+
+REM
+echo "Execute Oracle SQLPlus. Running ad_check4_acctstatus.sql now..."
+sqlplus -s %UIPSWD% @D:\sched_jobs\idm\sql\ad_check4_acctstatus.sql >D:\sched_jobs\idm\activity_log\ad_extract_create.%RRYYMMDD_HH24.MM%.log
+REM sqlplus -s %UIPSWD2% @D:\sched_jobs\idm\sql\ad_check4_acctstatus.sql >D:\sched_jobs\idm\activity_log\ad_extract_create.%RRYYMMDD_HH24.MM%.log
+REM
+
+if exist D:\sched_jobs\idm\ad_process_create.txt goto CREATEIT
+if exist D:\sched_jobs\idm\ad_process_sync.txt   goto SYNCIT
+
+echo "No create or sync file(s) found!"
+
+goto FINAL
+
+:CREATEIT
+REM
+echo "Execute Oracle SQLPlus. Running ad_extract_create.sql now..."
+sqlplus -s %UIPSWD% @D:\sched_jobs\idm\sql\ad_extract_create.sql >D:\sched_jobs\idm\activity_log\ad_extract_create.%RRYYMMDD_HH24.MM%.log
+REM sqlplus -s %UIPSWD2% @D:\sched_jobs\idm\sql\ad_extract_create.sql >D:\sched_jobs\idm\activity_log\ad_extract_create.%RRYYMMDD_HH24.MM%.log
+REM
+
+echo "create ~ Transfers AD Log List!"> D:\sched_jobs\idm\ad_logfile_load.txt
+
+if exist D:\sched_jobs\idm\ad_process_sync.txt   goto SYNCIT
+
+echo "No sync file(s) found!"
+
+goto FINAL
+
+:SYNCIT
+REM
+echo "Execute Oracle SQLPlus. Running ad_extract_sync.sql now..."
+sqlplus -s %UIPSWD% @D:\sched_jobs\idm\sql\ad_extract_sync.sql >D:\sched_jobs\idm\activity_log\ad_extract_sync.%RRYYMMDD_HH24.MM%.log
+REM sqlplus -s %UIPSWD2% @D:\sched_jobs\idm\sql\ad_extract_sync.sql >D:\sched_jobs\idm\activity_log\ad_extract_sync.%RRYYMMDD_HH24.MM%.log
+REM
+
+echo "sync ~ Transfers AD Log List!">> D:\sched_jobs\idm\ad_logfile_load.txt
+
+
+:FINAL
+
+echo "Return to calling program."
+
